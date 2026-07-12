@@ -1,23 +1,14 @@
-# 續航力測試工具 PWA 完整版
+# 續航力自動化測試 v4
 
-功能：
-- 自動或手動記錄電量
-- 測試計時
-- 已消耗電量
-- 平均每小時耗電速度
-- 預估總續航
-- 預估剩餘續航
-- 耗電趨勢圖
-- 測試紀錄
-- CSV 匯出
-- localStorage 自動保存
-- PWA 離線使用
-- 可加入 iPhone / Android 主畫面
+新增模式：
+- 待機測試
+- 網頁瀏覽測試
+- CPU 測試
+- GPU 測試
+- RAM 測試
+- 全部測試（同時執行全部負載）
 
-GitHub Pages：
-1. 將所有檔案上傳到 repository 根目錄。
-2. Settings → Pages。
-3. Deploy from a branch。
-4. main / root。
-5. 用 Safari 或 Chrome 開啟 GitHub Pages 網址。
-6. iPhone：分享 → 加入主畫面。
+使用：
+1. 上傳全部檔案到 GitHub Pages repository 根目錄。
+2. 等待 Pages 更新。
+3. iPhone Safari 清除舊網站資料後重新開啟。
