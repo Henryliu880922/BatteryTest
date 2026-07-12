@@ -1,0 +1,9 @@
+{
+"name":"續航力測試",
+"short_name":"Battery",
+"display":"standalone",
+"start_url":"./",
+"background_color":"#101522",
+"theme_color":"#101522",
+"icons":[]
+}
