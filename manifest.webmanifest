@@ -1,13 +1,11 @@
 {
-  "name": "續航力測試工具",
+  "name": "續航力自動化測試",
   "short_name": "續航測試",
-  "description": "記錄電量、計算耗電速度、預估總續航與匯出測試紀錄。",
-  "lang": "zh-Hant",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#0b0f18",
-  "theme_color": "#101522",
+  "theme_color": "#0b0f18",
   "icons": [
     {
       "src": "icon-192.svg",
