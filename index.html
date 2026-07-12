@@ -1,30 +1,175 @@
-<!doctype html><html lang="zh-Hant"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Battery Endurance Tester</title>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#101522">
-<style>
-body{font-family:system-ui,-apple-system,sans-serif;background:#101522;color:#fff;margin:0;padding:24px}
-.card{max-width:700px;margin:auto;background:#1b2233;padding:24px;border-radius:16px}
-button{padding:12px 18px;border:0;border-radius:10px;background:#53d58a;font-weight:bold}
-input{padding:10px;width:80px}
-</style></head>
-<body><div class="card">
-<h1>🔋 續航力測試</h1>
-<p>目前電量：</p>
-<input id="b" type="number" min="0" max="100" value="100"> %
-<button onclick="rec()">記錄</button>
-<ul id="list"></ul>
-</div>
-<script>
-if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js')}
-let data=JSON.parse(localStorage.getItem('battery')||'[]');
-const list=document.getElementById('list');
-function draw(){list.innerHTML=data.map(x=>`<li>${x.time} - ${x.level}%</li>`).join('')}
-function rec(){
-data.push({time:new Date().toLocaleString(),level:document.getElementById('b').value});
-localStorage.setItem('battery',JSON.stringify(data));
-draw();
-}
-draw();
-</script></body></html>
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#101522" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="續航力測試" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icon-192.svg" />
+  <title>續航力測試工具</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">BATTERY ENDURANCE TEST</p>
+        <h1>續航力測試工具</h1>
+        <p class="subtitle">記錄電量變化、平均耗電速度與預估總續航時間。</p>
+      </div>
+      <div id="apiBadge" class="status-badge">檢查電池 API 中</div>
+    </header>
+
+    <section class="dashboard">
+      <article class="battery-card">
+        <div class="battery-visual" aria-label="目前電池電量">
+          <div class="battery-body">
+            <div id="batteryFill" class="battery-fill"></div>
+            <span id="batteryPercentText">--%</span>
+          </div>
+          <div class="battery-cap"></div>
+        </div>
+        <div class="battery-meta">
+          <span id="chargingState">狀態：未知</span>
+          <span id="currentPowerSource">電源：未知</span>
+        </div>
+      </article>
+
+      <article class="metric-card">
+        <span>測試時間</span>
+        <strong id="elapsedTime">00:00:00</strong>
+      </article>
+
+      <article class="metric-card">
+        <span>已消耗電量</span>
+        <strong id="consumedPercent">0.0%</strong>
+      </article>
+
+      <article class="metric-card">
+        <span>平均耗電速度</span>
+        <strong id="drainRate">-- % / 小時</strong>
+      </article>
+
+      <article class="metric-card">
+        <span>預估總續航</span>
+        <strong id="estimatedRuntime">--</strong>
+      </article>
+
+      <article class="metric-card">
+        <span>預估剩餘時間</span>
+        <strong id="estimatedRemaining">--</strong>
+      </article>
+    </section>
+
+    <section class="panel controls-panel">
+      <div class="section-heading">
+        <div>
+          <h2>測試控制</h2>
+          <p>建議拔除充電器後再開始測試，並維持固定亮度與使用情境。</p>
+        </div>
+      </div>
+
+      <div class="control-grid">
+        <label>
+          測試名稱
+          <input id="testName" type="text" value="一般使用續航測試" />
+        </label>
+
+        <label>
+          測試情境
+          <select id="testScenario">
+            <option>一般使用</option>
+            <option>影片播放</option>
+            <option>遊戲</option>
+            <option>辦公文書</option>
+            <option>網頁瀏覽</option>
+            <option>待機</option>
+            <option>自訂</option>
+          </select>
+        </label>
+
+        <label>
+          螢幕亮度
+          <input id="brightness" type="text" placeholder="例如：50%" />
+        </label>
+
+        <label>
+          備註
+          <input id="notes" type="text" placeholder="例如：Wi-Fi 開啟、藍牙關閉" />
+        </label>
+      </div>
+
+      <div id="manualInputBox" class="manual-input hidden">
+        <label>
+          手動輸入目前電量
+          <div class="inline-input">
+            <input id="manualBatteryLevel" type="number" min="0" max="100" value="100" />
+            <span>%</span>
+            <button id="recordManualButton" class="secondary-button">記錄目前電量</button>
+          </div>
+        </label>
+      </div>
+
+      <div class="button-row">
+        <button id="startButton" class="primary-button">開始測試</button>
+        <button id="pauseButton" class="secondary-button" disabled>暫停</button>
+        <button id="stopButton" class="danger-button" disabled>結束測試</button>
+        <button id="resetButton" class="ghost-button">重設</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="section-heading">
+        <div>
+          <h2>耗電趨勢</h2>
+          <p>圖表會依照記錄資料即時更新。</p>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="batteryChart" width="1200" height="360"></canvas>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="section-heading table-heading">
+        <div>
+          <h2>測試紀錄</h2>
+          <p id="recordCount">目前 0 筆資料</p>
+        </div>
+        <div class="button-row compact">
+          <button id="addRecordButton" class="secondary-button">立即記錄</button>
+          <button id="exportButton" class="ghost-button">匯出 CSV</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>時間</th>
+              <th>經過時間</th>
+              <th>電量</th>
+              <th>充電狀態</th>
+              <th>備註</th>
+            </tr>
+          </thead>
+          <tbody id="recordsBody">
+            <tr class="empty-row">
+              <td colspan="5">尚未開始測試</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer>
+      <p>提示：部分桌面瀏覽器已不提供 Battery Status API，因此網站會自動切換成手動輸入模式。</p>
+    </footer>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
